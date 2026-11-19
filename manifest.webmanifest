@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "The Chess Heroes",
+  "short_name": "Chess Heroes",
+  "description": "Learn chess with six toy heroes: their moves, secret missions, real battles and a whole school of lessons.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "portrait",
+  "background_color": "#EAF1FB",
+  "theme_color": "#2563E6",
+  "categories": ["games", "education", "kids"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,25 @@
+/* The Chess Heroes: the public address's own pages (journey/site/build_site.py), in Toy Squad's colours */
+@font-face { font-family: 'Lilita One'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/lilita-one.woff2) format('woff2'); }
+@font-face { font-family: 'Nunito'; font-style: normal; font-weight: 200 1000; font-display: swap; src: url(fonts/nunito.woff2) format('woff2'); }
+:root { --bg: #EEF3FB; --ink: #1E2A4A; --slate: #56627D; --card: #FFFFFF; --line: #E3E9F3; --blue: #2563E6; --gold: #FFC61A; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 700 16px/1.6 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 20px 16px 48px; }
+header.top { display: flex; align-items: center; gap: 12px; }
+header.top img { width: 52px; height: 52px; border-radius: 13px; box-shadow: 0 4px 0 #C3D5F5; }
+header.top b { font: 400 26px/1.1 'Lilita One', 'Nunito', sans-serif; letter-spacing: .3px; }
+nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 22px; }
+nav a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 20px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line), 0 3px 0 #D8E1F0; color: var(--ink); font-weight: 900; text-decoration: none; }
+nav a.play { background: linear-gradient(180deg, #FFE066 0%, #FFC61A 60%, #FFB800 100%); box-shadow: inset 0 2px 0 rgba(255,255,255,.5), 0 3px 0 #DB9400; }
+nav a[aria-current="page"] { background: var(--ink); color: #FFFFFF; box-shadow: none; }
+nav a:focus-visible, a:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+h1 { margin: 0 0 6px; font: 400 36px/1.15 'Lilita One', 'Nunito', sans-serif; letter-spacing: .3px; }
+.lede { margin: 0 0 22px; color: var(--slate); font-weight: 800; font-size: 18px; }
+section { margin: 0 0 14px; padding: 18px 20px; border-radius: 22px; background: var(--card); box-shadow: 0 4px 0 #D8E1F0, 0 14px 22px -14px rgba(30,42,74,.3); }
+h2 { margin: 0 0 6px; font: 400 22px/1.2 'Lilita One', 'Nunito', sans-serif; letter-spacing: .3px; }
+p { margin: 0 0 10px; } p:last-child, ul:last-child, ol:last-child { margin-bottom: 0; }
+ul, ol { margin: 0 0 10px; padding-left: 22px; } li { margin: 4px 0; }
+a { color: var(--blue); }
+pre { margin: 10px 0 0; padding: 14px; overflow-x: auto; border-radius: 14px; background: var(--bg); white-space: pre-wrap; font: 500 12.5px/1.5 ui-monospace, Menlo, Consolas, monospace; color: #33405C; }
+footer { margin-top: 22px; color: var(--slate); font-size: 14px; }
