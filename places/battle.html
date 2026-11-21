@@ -457,6 +457,13 @@ window.EMBED = (() => {
   // goes back to the game's page, to where the player was
   const whole = !!q.whole || !(window.parent && window.parent !== window);
   E.whole = whole;
+  // 20 Nov (Osman, points 1 and 2: the music "should start as soon as the screen appears", not on the first tap). A
+  // browser lets a page make sound only after a tap in that page (or, where a viewer allows it, in the page around it).
+  // The tap that opened this place was in the game, whose sound is already running, so the place plays through it
+  // (the lab's audio(), where places.py puts GAME_SOUND_CTX); its last node goes to the game, which cuts it off when the
+  // place closes. As the whole page, or before the game's sound runs, the place keeps its own, as before.
+  window.GAME_SOUND_CTX = () => { try { if (whole) return null; const g = window.parent.GAME_SOUND && window.parent.GAME_SOUND(); return g && g.state === 'running' ? g : null; } catch (e) { return null; } };
+  window.PLACE_SOUND_OUT = n => { try { if (!whole && window.parent.PLACE_SOUND) window.parent.PLACE_SOUND(n); } catch (e) {} };
   E.tell = (what, data) => { try { if (!whole) window.parent.postMessage(Object.assign({ chessHeroes: what }, data || {}), '*'); } catch (e) {} };
   E.home = (why, to) => {
     if (!whole) { E.tell('home', { why: why || 'home' }); return; }
@@ -511,6 +518,33 @@ window.EMBED = (() => {
     return b;
   };
   const SOUNDS = '#sound, #hSound, #kSound, [data-spk]';
+  // 20 Nov (Osman, point 5: "There should be a back & Home button on all cards"): a round Back, as on the place's screens
+  // (the 3D arrow, painted by the icon layer from this drawing)
+  const ICO_BK = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>';
+  const mkBack = (go, cls) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = cls; b.dataset.home = 'back'; b.dataset.snd = 'uiBack'; b.setAttribute('aria-label', 'Back');
+    b.innerHTML = ICO_BK;
+    b.addEventListener('click', () => go());
+    return b;
+  };
+  // 20 Nov (Osman, point 7: "two same speaker icons ... will confuse the user"): a button that reads the words aloud
+  // shows the 3D ear (Fluent Emoji 3D, as the place's other icons); the sound switch keeps the speaker
+  const EAR = "data:image/webp;base64,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";
+  const READ = '#listen, #bListen, #dListen, #kListen, #lSpeak, #xoListen, #mmListen';
+  const ears = () => {
+    try {
+      if (typeof ICONS3D === 'undefined' || !ICONS3D.img) return;
+      if (!ICONS3D.img.ear) ICONS3D.img.ear = EAR;
+      document.querySelectorAll(READ).forEach(b => {
+        if (!b.dataset.read) b.dataset.read = '1';
+        const svg = b.querySelector('svg');
+        if (!svg || svg.dataset.i3k === 'ear') return;
+        svg.dataset.i3k = 'ear'; delete svg.dataset.i3;
+        if (window.icons3dScan) window.icons3dScan(b);
+      });
+    } catch (e) {}
+  };
   const homes = () => {
     // round Backs, and the lesson's way up (Hero School): the house goes right after each
     document.querySelectorAll('button.round.back:not([data-home]):not([data-spk]), button.round.bback:not([data-home]):not([data-spk]), #lUp:not([data-home])').forEach(b => {
@@ -545,11 +579,33 @@ window.EMBED = (() => {
     // Home at the top left and the speaker at the top right, above the screen's own words
     document.querySelectorAll('.endv > .scr, #done, #trick, #xArena').forEach(c => {   // #xArena: a duel's entrance (Draft 2)
       if (!c.firstElementChild || c.querySelector(':scope > [data-cnr]')) return;
-      const h = mkHome('round'), sp = mkSpk('round');
-      [h, sp].forEach(x => { x.dataset.cnr = '1'; x.style.position = 'absolute'; x.style.top = '12px'; x.style.zIndex = '5'; });
-      h.style.left = '20px'; sp.style.right = '20px';
-      c.prepend(sp); c.prepend(h);
+      // 20 Nov (point 5): Back first, where the place says where Back goes from this card (E.cardBack), then Home
+      const go = E.cardBack ? E.cardBack(c) : null;
+      const h = mkHome('round'), sp = mkSpk('round'), bk = go ? mkBack(go, 'round') : null;
+      [bk, h, sp].forEach(x => { if (!x) return; x.dataset.cnr = '1'; x.style.position = 'absolute'; x.style.top = '12px'; x.style.zIndex = '5'; });
+      h.style.left = bk ? '74px' : '20px'; sp.style.right = '20px';
+      if (bk) bk.style.left = '20px';
+      c.prepend(sp); c.prepend(h); if (bk) c.prepend(bk);
     });
+    // 21 Nov (Osman: "home and back button are overlapping the characters (e.g. rook in A rival's card) ... adjust the
+    // placement of the icons in such a way that they do not overlap or look awkward"): a card with a picture at its top
+    // carries Back, Home and the speaker in a row of their own above the picture, never over a hero. The Battlefield's
+    // rival card and Court card (Back closes the card, as on 20 Nov, point 5); Secret training's mission card, the
+    // coach's oops and the rest card (their own Back, with the Home and speaker put beside it above, moved up). The
+    // pictures, and the rival card's two chips in the picture's top corners, stay as approved.
+    document.querySelectorAll('#duel > .dpanel, .brief > .bpanel').forEach(pn => {
+      const card = pn.parentElement;
+      if (card.querySelector(':scope > .ctop')) return;
+      const duel = card.id === 'duel';
+      const bk = duel ? mkBack(() => { try { closeDuel(); } catch (e) {} }, 'round') : pn.querySelector(':scope > button[data-home="back"]');
+      if (!bk) return;   // a picture card without its own way back stays as it is
+      const h = (duel ? null : pn.querySelector(':scope > [data-home="home"]')) || mkHome('round');
+      const sp = (duel ? null : pn.querySelector(':scope > [data-spk]')) || mkSpk('round');
+      const row = document.createElement('div'); row.className = 'ctop';
+      for (const x of [bk, h, sp]) { x.dataset.cnr = '1'; x.style.left = x.style.right = x.style.top = ''; row.appendChild(x); }
+      card.insertBefore(row, pn);
+    });
+    ears();
     spkPaint();
   };
   // a game's top bar now holds Back, Home, the title, Helpers and Sound: a long name (Professor Pip) stays on one line;
@@ -559,7 +615,12 @@ window.EMBED = (() => {
     st.textContent = '.bar:has(> [data-home="home"]) .titles h1 { font-size: 19px; line-height: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n'
       + '.navp.navc { width: 46px; min-width: 46px; padding: 0; justify-content: center; }\n.navp.navc > span { display: none; }\n'
       + '#done:has(> [data-cnr]) .col, #trick:has(> [data-cnr]) > :not([data-cnr]):first-of-type { margin-top: 48px; }\n'
-      + 'button[data-spk] img, button[data-home="home"] img { pointer-events: none; }';
+      + 'button[data-spk] img, button[data-home="home"] img { pointer-events: none; }\n'
+      // 21 Nov: a picture card's own row for Back, Home and the speaker, above the picture (button.round outranks the
+      // lab's .round.bback, which sits later in the page)
+      + '.ctop { display: flex; align-items: center; gap: 8px; flex: none; margin: 0 0 8px; }\n'
+      + '.ctop > button.round { position: static; flex: none; width: 44px; height: 44px; }\n.ctop > button[data-spk] { margin-left: auto; }\n'
+      + '.ctop > button.round svg, .ctop > button.round img { width: 24px; height: 24px; }';
     document.head.appendChild(st);
   };
   const homesOn = () => { homesCss(); homes(); new MutationObserver(homes).observe(document.body, { childList: true, subtree: true }); };
@@ -2329,11 +2390,11 @@ const GAIN = { king: .35, queen: .43, knight: .52, win: .66, bishop: .45, music:
 function audio() {
   if (!ac) {
     try {
-      ac = new (window.AudioContext || window.webkitAudioContext)();
+      ac = (window.GAME_SOUND_CTX && window.GAME_SOUND_CTX()) || new (window.AudioContext || window.webkitAudioContext)();
       const comp = ac.createDynamicsCompressor();
       comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 4; comp.attack.value = .004; comp.release.value = .22;
       const master = ac.createGain(); master.gain.value = 1.25;
-      out = ac.createGain(); out.connect(comp); comp.connect(master); master.connect(ac.destination);
+      out = ac.createGain(); out.connect(comp); comp.connect(master); master.connect(ac.destination); if (window.PLACE_SOUND_OUT) window.PLACE_SOUND_OUT(master);
       verb = ac.createConvolver(); verb.buffer = impulse(2.2, 2.6); verb.connect(comp);
       NB = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
       const d = NB.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -5674,7 +5735,7 @@ function showEnd() {
   fitArt($('endScr'));
   $('eStory').onclick = () => openStory();
   $('eGo').onclick = () => endNext(w.btn);
-  if (win) { sfx('victory'); confetti('win'); for (let i = 0; i < E.stars; i++) setTimeout(() => sfx('starDing', i + 1), 380 + i * 280); }
+  if (win) { if (!music) sfx('victory'); confetti('win'); for (let i = 0; i < E.stars; i++) setTimeout(() => sfx('starDing', i + 1), 380 + i * 280); }
   else if (E.res === 'loss') sfx('aww');
   else sfx('puffGold');
 }
@@ -5785,7 +5846,7 @@ function showCup() {
   showView('vCup', true);
   $('cStory').onclick = () => openStory(true);
   $('cGo').onclick = cupNext;
-  sfx('victory'); confetti('win');
+  if (!music) sfx('victory'); confetti('win');
 }
 function cupNext() { if (look === 'royal') openTrailThen(9); else openTrail(); }
 
@@ -6129,7 +6190,7 @@ function showPtResult() {
   showView('vPtResult', !!E.winner);
   $('prOdds').onclick = () => { renderSetup(); openOdds(); };
   $('prGo').onclick = ptStart;
-  if (E.winner) { sfx('victory'); confetti('win'); } else sfx('puffGold');
+  if (E.winner) { if (!music) sfx('victory'); confetti('win'); } else sfx('puffGold');
 }
 
 /* ======================= Hero School (approved 7 Nov): the library, The Rules' 24 lessons, search and the A to Z =======================
@@ -30300,6 +30361,38 @@ const MovieCore = (() => {
     }
   }
 
+  {
+    const JUMPF = [{ transform: 'translateY(0)' }, { transform: 'translateY(-38%) rotate(-6deg)', offset: .25 }, { transform: 'translateY(0)', offset: .5 },
+                   { transform: 'translateY(-24%) rotate(6deg)', offset: .72 }, { transform: 'translateY(0)' }];
+    let partyTill = 0;
+    const raysOff = () => { const r = document.getElementById('rays'); if (r) r.classList.remove('on'); };
+    const party = col => {
+      try { playWin(); } catch (e) {}
+      const r = document.getElementById('rays'); if (r) r.classList.add('on');
+      try { confetti('happy'); } catch (e) {}
+      if (!reduce && S) for (const [i, el] of els) {
+        const p = S.board[i], img = el.querySelector('img');
+        if (!p || !img || Chess.color(p) !== col) continue;
+        img.animate(JUMPF, { duration: 900, delay: vxy(i)[0] * 90, iterations: 3, easing: 'ease-in-out' });
+      }
+      partyTill = Date.now() + (reduce ? 0 : 4600);
+    };
+    const later = labFn => function (...a) {   // a result card waits for the celebration to end
+      const left = partyTill - Date.now();
+      if (left > 0) { const e = epoch; setTimeout(() => { if (e === epoch) { raysOff(); labFn.apply(this, a); } }, left); return; }
+      raysOff(); return labFn.apply(this, a);
+    };
+    const labEndGame = endGame, labPtEnd = ptEnd, labStart = startGame, labPtStart = ptStart;
+    endGame = function (res, kind) { if (res === 'win' && kind === 'checkmate' && GM && !GM.over && !GM.test) party(ME); return labEndGame(res, kind); };
+    ptEnd = function (winner, kind) { if (winner && kind === 'checkmate' && GM && !GM.over) party(sideOf(winner)); return labPtEnd(winner, kind); };
+    showEnd = later(showEnd); showCup = later(showCup); showPtResult = later(showPtResult);
+    startGame = function (...a) { partyTill = 0; raysOff(); return labStart.apply(this, a); };
+    ptStart = function (...a) { partyTill = 0; raysOff(); return labPtStart.apply(this, a); };
+  }
+
+  // 20 Nov (Osman, point 5): where Back goes from a card (EMBED_HEAD puts it beside Home): a game's result and the
+  // Champion's Cup go back to the Battlefield's trail, Play Together's result to its setup
+  E.cardBack = c => (c.id === 'endScr' || c.id === 'cupScr' ? () => openTrail() : c.id === 'ptResultScr' ? () => openTogether() : null);
   // the lab's own home is the game's Home
   const labShowView = showView;
   showView = function (id, arena) { if (id === 'vHome') { E.home(); return; } return labShowView(id, arena); };
@@ -30311,6 +30404,8 @@ const MovieCore = (() => {
   else if (E.go === 'lesson' && byId(n)) openLesson(n, null, () => E.home('back'), true);
   else { openTrail(); if (+E.arg >= 1 && +E.arg <= 11) tapLevel(+E.arg); }
   E.ready();
+  // 20 Nov (Osman, points 1 and 2): the music starts as the first screen appears, not on the first tap
+  if (soundOn) { try { audio(); bgmUpdate(); } catch (e) {} }
 })();
 window.BL = { get S() { return S; }, get GM() { return GM; }, get busy() { return busy; }, get over() { return over; }, get END() { return END; }, PROG: () => PROG,
   tap, childMove, startGame, openTrail, openDuel, setLook, endGame, brain: () => Brain.worker, court: () => Court };
@@ -30321,4 +30416,25 @@ window.MUSICDATA = {"battle": "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAA
 if (typeof musicArrived === 'function') musicArrived();
 </script>
 
+<style>/* the game (journey/places.py), 20 Nov */
+/* point 4 ("in battle story, text vs. chess board pic is misaligned. chess board comes over the text"): the small board
+   keeps its own width (under 370 px the lab narrowed its column, not the board) with room for its frame; on a phone
+   narrower than 360 px the words go under the board */
+.scard { grid-template-columns: max-content minmax(0, 1fr); }
+.scard .mini { margin: 5px; }
+.look-royal .scard .mini { margin: 7px; }
+@media (max-width: 359px) { .scard { grid-template-columns: minmax(0, 1fr); } .scard .mini { justify-self: center; } }
+/* point 8 (his picture of the Court levels): on a phone narrower than 400 px each Court tile puts its crown over its
+   words, so "Court 3" and "Rating 2000" stay inside the tile */
+@media (max-width: 399px) {
+  .court button { grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: center; gap: 3px; height: auto; min-height: 76px; padding: 9px 4px 8px; text-align: center; }
+}
+/* point 8 ("'watch again' is getting out of the button"): under 400 px the hero movie's buttons take two rows, Watch
+   again across, Previous and Next under it; a lesson's row does the same under 360 px, where Show me no longer fits */
+@media (max-width: 399px) { #vMovie .lnav3 { grid-template-columns: 1fr 1fr; } #vMovie .lnav3 #mvPlay { grid-column: 1 / -1; grid-row: 1; } }
+@media (max-width: 359px) { #vLesson .lnav3 { grid-template-columns: 1fr 1fr; } #vLesson .lnav3 #lShow { grid-column: 1 / -1; grid-row: 1; } }
+/* point 8 (every screen checked): on the narrowest phones an odds row's words take three or four lines; the row grows
+   with them instead of letting them spill out (it stays 72 px where they fit) */
+.orow { height: auto; min-height: 72px; padding-top: 8px; padding-bottom: 8px; }
+</style>
 </body></html>

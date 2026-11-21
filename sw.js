@@ -6,7 +6,7 @@
    - activate: older versions' caches are deleted
    - fetch: the game's own files from the cache first, else from the network (and kept); a page asked for with no
      connection gets the game's page. Nothing from other sites is touched. */
-const VERSION = 'chess-heroes-a5549316c889';
+const VERSION = 'chess-heroes-c9951300b85d';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'places/probe.js'];
 const PLACES = ['places/battle.js', 'places/training.js', 'places/music/train-1.mp3', 'places/music/train-2.mp3', 'places/music/train-3.mp3', 'places/music/train-4.mp3', 'places/music/train-5.mp3', 'places/music/train-6.mp3', 'places/music/train-7.mp3', 'places/music/train-8.mp3'];
 
